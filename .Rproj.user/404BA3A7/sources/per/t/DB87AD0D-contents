@@ -1,0 +1,48 @@
+# Codigo para analises descritivas
+
+require(tidyverse)
+require(R.accoon)
+
+df <- read_csv('tratamento-dados/dados_petlove_diarios.csv') |> 
+  mutate(Razao=Receita/Custo)
+
+cores <- c('Receita'=color_raccoon()[6],
+           'Custo'=color_raccoon()[1])
+
+# Serie temporal custo e receita
+
+df|> 
+  pivot_longer(!c(Data,Razao), names_to = 'variavel', values_to='valor') |> 
+  ggplot()+
+  aes(x=Data, y=valor,color=variavel)+
+  geom_vline(xintercept = df[df$Razao==max(df$Razao),]$Data,
+             color=color_raccoon()[10], lty='dashed',
+             alpha=0.5)+ # data de maior lucro
+  geom_vline(xintercept = df[df$Razao==min(df$Razao),]$Data,
+             color=color_raccoon()[5], lty='dashed',
+             alpha=0.5)+ # data de menor lucro
+  geom_line(size=0.4)+
+  theme_raccoon()+
+  scale_y_continuous(labels=scales::comma)+
+  scale_color_manual(values = cores)+
+  labs(x='Mês', y='Valor (R$)',
+       title = 'Custo e Receita entre 01/01 e 30/06 de 2021')
+
+ggsave('graficos/1-descritiva-custo-receita.png')
+
+# Dispersao custo x receita
+
+df |> 
+  ggplot()+
+  aes(x=Custo,y=Receita)+
+  geom_point(size=0.5)+
+  theme_raccoon()+
+  scale_y_continuous(labels=scales::comma)+
+  labs(x='Custo (R$)', y='Receita (R$)',
+       title = 'Custo x Receita - Petlove',
+       subtitle = '01/01/21 até 30/06/21')+
+  expand_limits(x = 0, y=0)
+
+ggsave('graficos/2-descritiva-dispersao.png')
+
+
